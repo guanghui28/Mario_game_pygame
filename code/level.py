@@ -25,15 +25,30 @@ class Level:
     
 				match layer:
 					case 'BG': z = Z_LAYERS['bg tiles']
-					case 'FG': z = Z_LAYERS['fg']
+					case 'FG': z = Z_LAYERS['bg tiles']
 					case _: z = Z_LAYERS['main']
      
 				Sprite((x * TILE_SIZE,y * TILE_SIZE), surf, groups,z)
 
+		# bg details
+		for obj in tmx_map.get_layer_by_name('BG details'):
+			if obj.name == 'static':
+				Sprite((obj.x, obj.y), obj.image, self.all_sprites, z=Z_LAYERS['bg tiles'])
+			else:
+				AnimatedSprite((obj.x, obj.y), level_frames[obj.name], self.all_sprites, Z_LAYERS['bg tiles'])
+				if obj.name == 'candle':
+					AnimatedSprite((obj.x, obj.y) + vector(-20,-20), level_frames['candle_light'], self.all_sprites)
+        
 		# objects
 		for obj in tmx_map.get_layer_by_name('Objects'):
 			if obj.name == 'player':
-				self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites, self.semi_collision_sprites)
+				pos = (obj.x, obj.y)
+				groups = self.all_sprites
+				collision_sprites = self.collision_sprites
+				semi_collision_sprites = self.semi_collision_sprites
+				frames = level_frames['player']
+				self.player = Player(pos, groups, collision_sprites, semi_collision_sprites, frames)
+
 			else:
 				if obj.name in ('barrel', 'crate'):
 					Sprite((obj.x, obj.y), obj.image, [self.all_sprites, self.collision_sprites])
