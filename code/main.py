@@ -5,6 +5,7 @@ from os.path import join
 from support import *
 from data import Data
 from ui import UI
+from overworld import OverWorld
 
 class Game:
 	def __init__(self):
@@ -17,7 +18,9 @@ class Game:
 		self.ui = UI(self.font, self.ui_frames)
 		self.data = Data(self.ui)
 		self.tmx_maps = {0: load_pygame(join('..', 'data', 'levels', '1.tmx'))}
-		self.current_stage = Level(self.tmx_maps[0], self.level_frames, self.data)
+		self.tmx_overworld = load_pygame(join('..', 'data', 'overworld', 'overworld.tmx'))
+		# self.current_stage = Level(self.tmx_maps[0], self.level_frames, self.data)
+		self.current_stage = OverWorld(self.tmx_overworld, self.data, self.overworld_frames)
   
 	def import_assets(self):
 		self.level_frames = {
@@ -54,6 +57,21 @@ class Game:
 		self.ui_frames = {
 			'heart': import_folder('..', 'graphics', 'ui', 'heart'),
 			'coin': import_image('..', 'graphics', 'ui', 'coin')
+		}
+  
+		self.overworld_frames = {
+			'palms': import_folder('..', 'graphics', 'overworld', 'palm'),
+			'water': import_folder('..', 'graphics', 'overworld', 'water'),
+			'path': import_folder_dict('..', 'graphics', 'overworld', 'path'),
+			'icon': import_sub_folders('..', 'graphics', 'overworld', 'icon'),
+		}
+
+		self.audio_files = {
+			'coin': pygame.mixer.Sound(join('..', 'audio', 'coin.wav')),
+			'attack': pygame.mixer.Sound(join('..', 'audio', 'attack.wav')),
+			'jump': pygame.mixer.Sound(join('..', 'audio', 'jump.wav')), 
+			'damage': pygame.mixer.Sound(join('..', 'audio', 'damage.wav')),
+			'pearl': pygame.mixer.Sound(join('..', 'audio', 'pearl.wav')),
 		}
 
 	def run(self):
