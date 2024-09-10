@@ -25,7 +25,7 @@ class Game:
 			'saw': import_folder('..', 'graphics', 'enemies', 'saw', 'animation'),
 			'saw_chain': import_image('..', 'graphics', 'enemies', 'saw', 'saw_chain'),
 			'floor_spike': import_folder('..', 'graphics', 'enemies', 'floor_spikes'),
-			'palm': import_folder('..', 'graphics', 'level', 'palms'),
+			'palm': import_sub_folders('..', 'graphics', 'level', 'palms'),
 			'candle': import_folder('..', 'graphics', 'level', 'candle'),
 			'window': import_folder('..', 'graphics', 'level', 'window'),
 			'big_chain': import_folder('..', 'graphics', 'level', 'big_chains'),
@@ -41,6 +41,8 @@ class Game:
 			'pearl': import_image('..', 'graphics', 'enemies', 'bullets', 'pearl'),
 			'items': import_sub_folders('..', 'graphics', 'items'),
 			'particle': import_folder('..', 'graphics', 'effects', 'particle'),
+			'water_top': import_folder('..', 'graphics', 'level', 'water', 'top'),
+			'water_body': import_image('..', 'graphics', 'level', 'water', 'body'),
 		}
   
 		self.font = pygame.font.Font(join('..', 'graphics', 'ui', 'runescape_uf.ttf'),40)

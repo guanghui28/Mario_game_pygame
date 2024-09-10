@@ -9,6 +9,10 @@ class Level:
 	def __init__(self, tmx_map, level_frames, data):
 		self.display_surface = pygame.display.get_surface()
 		self.data = data
+  
+		# level data
+		self.level_width = tmx_map.width * TILE_SIZE
+		self.level_bottom = tmx_map.height * TILE_SIZE
 
 		# groups 
 		self.all_sprites = AllSprites()
@@ -47,7 +51,7 @@ class Level:
 			else:
 				AnimatedSprite((obj.x, obj.y), level_frames[obj.name], self.all_sprites, Z_LAYERS['bg tiles'])
 				if obj.name == 'candle':
-					AnimatedSprite((obj.x, obj.y) + vector(-20,-20), level_frames['candle_light'], self.all_sprites)
+					AnimatedSprite((obj.x, obj.y) + vector(-20,-20), level_frames['candle_light'], self.all_sprites, Z_LAYERS['bg tiles'])
         
 		# objects
 		for obj in tmx_map.get_layer_by_name('Objects'):
@@ -58,6 +62,9 @@ class Level:
 				semi_collision_sprites = self.semi_collision_sprites
 				frames = level_frames['player']
 				self.player = Player(pos, groups, collision_sprites, semi_collision_sprites, frames, self.data)
+    
+			elif obj.name == 'flag':
+				self.level_finish_rect = pygame.FRect((obj.x, obj.y), (obj.width, obj.height))
 
 			else:
 				if obj.name in ('barrel', 'crate'):
@@ -128,6 +135,19 @@ class Level:
 		# items
 		for obj in tmx_map.get_layer_by_name('Items'):
 			Item(obj.name, (obj.x + TILE_SIZE/2, obj.y + TILE_SIZE/2), level_frames['items'][obj.name], [self.all_sprites, self.item_sprites], self.data)
+   
+		# waters
+		for obj in tmx_map.get_layer_by_name("Water"):
+			rows = int(obj.height / TILE_SIZE)
+			cols = int(obj.width / TILE_SIZE)
+			for row in range(rows):
+				for col in range(cols):
+					x = obj.x + col * TILE_SIZE
+					y = obj.y + row * TILE_SIZE
+					if row == 0:
+						AnimatedSprite((x, y), level_frames['water_top'],self.all_sprites, Z_LAYERS['water'])
+					else:
+						Sprite((x, y),level_frames['water_body'],self.all_sprites,Z_LAYERS['water'])
 
 	def create_pearl(self, pos, direction):
 		Pearl(pos, [self.all_sprites, self.damage_sprites, self.pearl_sprites], self.pearl_surf,direction, 150)
@@ -160,6 +180,21 @@ class Level:
 			if target.rect.colliderect(self.player.rect) and self.player.attacking and facing_target:
 				target.reverse()
 
+	def check_constraint(self):
+		# horizontal
+		if self.player.hitbox_rect.left <= 0:
+			self.player.hitbox_rect.left = 0
+		elif self.player.hitbox_rect.right >= self.level_width:
+			self.player.hitbox_rect.right = self.level_width
+
+		# bottom border (death)
+		if self.player.hitbox_rect.bottom > self.level_bottom:
+			self.player.hitbox_rect.bottom = self.level_bottom
+   
+		# success
+		if self.player.hitbox_rect.colliderect(self.level_finish_rect):
+			debug('success', 50, 50)
+
 	def run(self, dt):
 		self.display_surface.fill('black')
   
@@ -168,5 +203,6 @@ class Level:
 		self.hit_collision()
 		self.item_collision()
 		self.attack_collision()
+		self.check_constraint()
   
 		self.all_sprites.custom_draw(self.player.hitbox_rect.center)
