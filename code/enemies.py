@@ -16,6 +16,14 @@ class Tooth(pygame.sprite.Sprite):
         self.collision_rects = [sprite.rect for sprite in collision_sprites]
         self.speed = 200
         
+        # timers
+        self.hit_timer = Timer(250)
+        
+    def reverse(self):
+        if not self.hit_timer.active:
+            self.direction *= -1
+            self.hit_timer.activate()
+        
     def animate(self, dt):
         self.frame_index += ANIMATION_SPEED * dt
         self.image = self.frames[int(self.frame_index % len(self.frames))]
@@ -30,10 +38,11 @@ class Tooth(pygame.sprite.Sprite):
         
         if floor_rect_right.collidelist(self.collision_rects) < 0 and self.direction > 0 or\
         floor_rect_left.collidelist(self.collision_rects) < 0 and self.direction < 0 or\
-        wall_rect.collidelist(self.collision_rects) != 1:
+        wall_rect.collidelist(self.collision_rects) != -1:
             self.direction *= - 1
     
     def update(self, dt):
+        self.hit_timer.update()
         self.animate(dt)        
         self.movement(dt)
         
@@ -81,7 +90,6 @@ class Shell(pygame.sprite.Sprite):
             if self.state == 'fire' and int(self.frame_index) == 3 and not self.has_fired:
                 self.has_fired = True
                 self.create_pearl(self.rect.center, self.bullet_direction)
-                print('shoot')
         else:
             self.frame_index = 0
             if self.state == 'fire':
@@ -103,9 +111,15 @@ class Pearl(pygame.sprite.Sprite):
         self.speed = speed
         self.z = Z_LAYERS['main']
         self.timers = {
-            'lifetime': Timer(5000)
+            'lifetime': Timer(5000),
+            'reverse': Timer(250)
         }
         self.timers['lifetime'].activate()
+    
+    def reverse(self):
+        if not self.timers['reverse'].active:
+            self.direction *= -1
+            self.timers['reverse'].activate()
         
     def update(self, dt):
         for timer in self.timers.values():
