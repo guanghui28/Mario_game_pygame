@@ -13,9 +13,21 @@ class Level:
 		# level data
 		self.level_width = tmx_map.width * TILE_SIZE
 		self.level_bottom = tmx_map.height * TILE_SIZE
+		tmx_level_properties = tmx_map.get_layer_by_name('Data')[0].properties
+		if tmx_level_properties['bg']:
+			bg_tile = level_frames['bg_tiles'][tmx_level_properties['bg']]
+		else:
+			bg_tile = None
 
 		# groups 
-		self.all_sprites = AllSprites()
+		self.all_sprites = AllSprites(
+					width=self.level_width, 
+					height=self.level_bottom, 
+					bg_tile=bg_tile, 
+					top_limit=tmx_level_properties['top_limit'],
+					clouds={'large': level_frames['cloud_large'], 'small': level_frames['cloud_small']},
+					horizon_line = tmx_level_properties['horizon_line']
+     )
 		self.collision_sprites = pygame.sprite.Group()
 		self.semi_collision_sprites = pygame.sprite.Group()
 		self.damage_sprites = pygame.sprite.Group()
@@ -205,4 +217,4 @@ class Level:
 		self.attack_collision()
 		self.check_constraint()
   
-		self.all_sprites.custom_draw(self.player.hitbox_rect.center)
+		self.all_sprites.custom_draw(self.player.hitbox_rect.center, dt)
