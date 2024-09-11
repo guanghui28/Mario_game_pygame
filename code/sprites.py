@@ -1,6 +1,7 @@
 from settings import *
 from math import sin, cos, radians
 from random import randint
+from debug import debug
 
 class Sprite(pygame.sprite.Sprite):
 	def __init__(self, pos, surf = pygame.Surface((TILE_SIZE,TILE_SIZE)), groups=None, z=Z_LAYERS['main']):
@@ -152,23 +153,25 @@ class Node(pygame.sprite.Sprite):
         self.level = level
         self.data = data
         self.paths = paths
+        self.grid_pos = (int(pos[0] / TILE_SIZE), int(pos[1] / TILE_SIZE))
         
     def can_move(self, direction):
-        if direction in list(self.paths.keys()):
-            return True
+        return direction in list(self.paths.keys()) and int(self.paths[direction][0][0]) <= self.data.unlocked_level
         
 class Icon(pygame.sprite.Sprite):
     def __init__(self, pos, groups, frames):
         super().__init__(groups)
         self.icon = True
-        self.frames, self.frame_index = frames, 0
+        self.path = None
+        self.speed = 400
+        self.direction = vector()
+        
         self.state = 'idle'
+        self.frames, self.frame_index = frames, 0
         self.image = self.frames[self.state][self.frame_index]
         self.z = Z_LAYERS['main']
+        
         self.rect = self.image.get_frect(center=pos)
-        self.path = None
-        self.direction = vector()
-        self.speed = 400
         
     def start_move(self, path):
         self.rect.center = path[0]
@@ -187,17 +190,39 @@ class Icon(pygame.sprite.Sprite):
     def point_collision(self):
         if self.direction.y == 1 and self.rect.centery >= self.path[0][1] or \
             self.direction.y == -1 and self.rect.centery <= self.path[0][1]:
-            self.rect.centery = self.path[0][1]
-            del self.path[0]
-            self.find_path()
+                self.rect.centery = self.path[0][1]
+                del self.path[0]
+                self.find_path()
         
         if self.direction.x == 1 and self.rect.centerx >= self.path[0][0] or \
             self.direction.x == -1 and self.rect.centerx <= self.path[0][0]:
-            self.rect.centery = self.path[0][0]
-            del self.path[0]
-            self.find_path()
+                self.rect.centery = self.path[0][0]
+                del self.path[0]
+                self.find_path()
+    
+    def animate(self, dt):
+        self.frame_index += ANIMATION_SPEED * dt
+        self.image = self.frames[self.state][int(self.frame_index % len(self.frames[self.state]))]
+        
+    def get_state(self):
+        self.state = 'idle'
+        if self.direction == vector(1, 0):
+            self.state = 'right'
+        elif self.direction == vector(-1, 0):
+            self.state = 'left'
+        elif self.direction == vector(0, 1):
+            self.state = 'down'
+        elif self.direction == vector(0, -1):
+            self.state = 'up'
     
     def update(self, dt):
         if self.path:
             self.point_collision()
             self.rect.center += self.direction * self.speed * dt
+        self.get_state()
+        self.animate(dt)
+        
+class PathSprite(Sprite):
+    def __init__(self, pos, surf, groups, level):
+        super().__init__(pos, surf, groups, Z_LAYERS['path'])
+        self.level = level
